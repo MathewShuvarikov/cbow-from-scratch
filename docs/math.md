@@ -51,7 +51,8 @@ therefore
 
 $$
 z \in \mathbb{R}^{1 \times V}.
-$$
+$$  
+
 Hence,
 
 $$
