@@ -56,11 +56,12 @@ $$
 Hence,
 
 $$
-\hat{y}_j
-=
+\hat{y}_j =
 \frac{\exp(z_j)}
-{\sum_{k=1}^{V}\exp(z_k)}
+{\sum_{k=1}^{V} \exp(z_k)}
 $$
+
+for $j = 1, \ldots, V$.
 
 for $j = 1, \ldots, V$.
 ## 3. Forward pass
