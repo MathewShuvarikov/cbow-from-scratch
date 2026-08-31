@@ -62,8 +62,6 @@ $$
 $$
 
 for $j = 1, \ldots, V$.
-
-for $j = 1, \ldots, V$.
 ## 3. Forward pass
 
 
