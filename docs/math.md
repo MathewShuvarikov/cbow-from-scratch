@@ -64,260 +64,380 @@ $$
 for $j = 1, \ldots, V$.
 ## 3. Forward pass
 
-
 ### 3.1 Context embeddings
+
+Let the vocabulary size be \(V\), the embedding dimension be \(d\), and the context size be \(C\).
+
+The input embedding matrix is
+
+```math
+W_{\text{in}} \in \mathbb{R}^{V \times d}.
+```
+
+For each context word \(w_c\), where \(c = 1,\dots,C\), we select the corresponding row of \(W_{\text{in}}\):
+
+```math
+\mathbf{e}_c = W_{\text{in}}[w_c].
+```
+
+Each context embedding has shape
+
+```math
+\mathbf{e}_c \in \mathbb{R}^{1 \times d}.
+```
+
+
 ### 3.2 Context aggregation
+
+CBOW combines the context embeddings by taking their average:
+
+```math
+\mathbf{h}
+=
+\frac{1}{C}
+\sum_{c=1}^{C}
+\mathbf{e}_c.
+```
+
+Equivalently,
+
+```math
+\mathbf{h}
+=
+\frac{1}{C}
+\sum_{c=1}^{C}
+W_{\text{in}}[w_c].
+```
+
+The hidden representation has shape
+
+```math
+\mathbf{h} \in \mathbb{R}^{1 \times d}.
+```
+
+
 ### 3.3 Output logits
-## 3.4 Softmax
 
-Let the output logits be
+The output embedding matrix is
 
-$$
-\mathbf{z} = (z_1, z_2, \ldots, z_V),
-$$
+```math
+W_{\text{out}}
+\in
+\mathbb{R}^{d \times V}.
+```
 
-where $V$ is the vocabulary size.
+The logits are computed as
 
-The softmax probability for class $i$ is
+```math
+\mathbf{z}
+=
+\mathbf{h}W_{\text{out}}.
+```
 
-$$
+Therefore,
+
+```math
+\mathbf{z}
+\in
+\mathbb{R}^{1 \times V}.
+```
+
+For a particular vocabulary element \(i\),
+
+```math
+z_i
+=
+\sum_{r=1}^{d}
+h_r W_{\text{out},ri}.
+```
+
+
+### 3.4 Softmax
+
+The logits are converted into probabilities using softmax:
+
+```math
 \hat{y}_i
 =
 \frac{e^{z_i}}
 {\sum_{k=1}^{V} e^{z_k}}.
-$$
+```
 
-Denote
+Define
 
-$$
-S = \sum_{k=1}^{V} e^{z_k}.
-$$
+```math
+S
+=
+\sum_{k=1}^{V}e^{z_k}.
+```
 
 Then
 
-$$
-\hat{y}_i = \frac{e^{z_i}}{S}.
-$$
+```math
+\hat{y}_i
+=
+\frac{e^{z_i}}{S}.
+```
 
-### Derivative of softmax: $i=j$
+
+#### Softmax derivative for \(i=j\)
 
 We first compute
 
-$$
-\frac{\partial \hat{y}_i}{\partial z_i}.
-$$
+```math
+\frac{\partial \hat{y}_i}
+{\partial z_i}.
+```
 
 Using the quotient rule,
 
-$$
-\frac{\partial \hat{y}_i}{\partial z_i}
+```math
+\frac{\partial \hat{y}_i}
+{\partial z_i}
 =
 \frac{
-e^{z_i}S - e^{z_i}e^{z_i}
+e^{z_i}S
+-
+e^{z_i}e^{z_i}
 }
 {S^2}.
-$$
+```
 
-Factor out $e^{z_i}$:
+Factor out \(e^{z_i}\):
 
-$$
+```math
 =
 \frac{
 e^{z_i}(S-e^{z_i})
 }
 {S^2}.
-$$
+```
 
-Split the fraction:
+Split the expression:
 
-$$
+```math
 =
 \frac{e^{z_i}}{S}
 \left(
 1-\frac{e^{z_i}}{S}
 \right).
-$$
+```
 
-Therefore,
+Hence,
 
-$$
+```math
 \boxed{
-\frac{\partial \hat{y}_i}{\partial z_i}
+\frac{\partial \hat{y}_i}
+{\partial z_i}
 =
 \hat{y}_i(1-\hat{y}_i)
 }
-$$
+```
 
-### Derivative of softmax: $i\neq j$
 
-Now consider
+#### Softmax derivative for \(i \neq j\)
 
-$$
+For
+
+```math
 \hat{y}_j
 =
-\frac{e^{z_j}}{S}
-$$
+\frac{e^{z_j}}{S},
+```
 
-and differentiate with respect to $z_i$, where $i\neq j$.
+take the derivative with respect to \(z_i\), where \(i \neq j\).
 
-Since $e^{z_j}$ does not depend on $z_i$,
+Since \(e^{z_j}\) does not depend on \(z_i\),
 
-$$
-\frac{\partial e^{z_j}}{\partial z_i}=0.
-$$
+```math
+\frac{\partial e^{z_j}}
+{\partial z_i}
+=
+0.
+```
 
 However,
 
-$$
-\frac{\partial S}{\partial z_i}=e^{z_i}.
-$$
-
-Thus,
-
-$$
-\frac{\partial \hat{y}_j}{\partial z_i}
+```math
+\frac{\partial S}
+{\partial z_i}
 =
--\frac{e^{z_j}e^{z_i}}{S^2}.
-$$
+e^{z_i}.
+```
 
 Therefore,
 
-$$
+```math
+\frac{\partial \hat{y}_j}
+{\partial z_i}
+=
+-
+\frac{
+e^{z_j}e^{z_i}
+}
+{S^2}.
+```
+
+Thus,
+
+```math
 \boxed{
-\frac{\partial \hat{y}_j}{\partial z_i}
+\frac{\partial \hat{y}_j}
+{\partial z_i}
 =
 -\hat{y}_j\hat{y}_i
 }
-\qquad i\neq j.
-$$
+```
 
-Both cases can be written as one formula using the Kronecker delta:
+for \(i \neq j\).
 
-$$
+Both cases can be written using the Kronecker delta:
+
+```math
 \boxed{
-\frac{\partial \hat{y}_j}{\partial z_i}
+\frac{\partial \hat{y}_j}
+{\partial z_i}
 =
 \hat{y}_j
 \left(
-\delta_{ij}-\hat{y}_i
+\delta_{ij}
+-
+\hat{y}_i
 \right)
 }
-$$
+```
 
 where
 
-$$
+```math
 \delta_{ij}
 =
 \begin{cases}
-1, & i=j,\\
+1, & i=j, \\
 0, & i\neq j.
 \end{cases}
-$$
+```
 
-## 3.5 Cross-entropy loss
 
-For one training example,
+### 3.5 Cross-entropy loss
 
-$$
+For one training example, the cross-entropy loss is
+
+```math
 L
 =
--\sum_{j=1}^{V}
-y_j\ln \hat{y}_j.
-$$
+-
+\sum_{j=1}^{V}
+y_j
+\ln \hat{y}_j.
+```
 
-Since $\mathbf{y}$ is one-hot, only the true class contributes to the loss.
+Since \(\mathbf{y}\) is one-hot, only the target word contributes to the loss.
 
-The derivative with respect to a particular predicted probability $\hat{y}_j$ is
+If \(t\) is the index of the target word,
 
-$$
-\boxed{
-\frac{\partial L}{\partial \hat{y}_j}
+```math
+L
 =
--\frac{y_j}{\hat{y}_j}
+-\ln \hat{y}_t.
+```
+
+The derivative with respect to a particular predicted probability is
+
+```math
+\boxed{
+\frac{\partial L}
+{\partial \hat{y}_j}
+=
+-
+\frac{y_j}{\hat{y}_j}
 }
-$$
+```
 
-# 4. Backpropagation
 
-## 4.1 Gradient w.r.t. logits
+## 4. Backpropagation
 
-We want to compute
+### 4.1 Gradient w.r.t. logits
 
-$$
+We want to find
+
+```math
 \frac{\partial L}{\partial z_i}.
-$$
+```
 
-Since every softmax output $\hat{y}_j$ depends on $z_i$, the chain rule gives
+Since every softmax output \(\hat{y}_j\) depends on \(z_i\), the chain rule gives
 
-$$
+```math
 \frac{\partial L}{\partial z_i}
 =
 \sum_{j=1}^{V}
 \frac{\partial L}{\partial \hat{y}_j}
 \frac{\partial \hat{y}_j}{\partial z_i}.
-$$
+```
 
-There are two cases.
 
-For $j=i$:
+For \(j=i\),
 
-$$
--\frac{y_i}{\hat{y}_i}
-\hat{y}_i(1-\hat{y}_i)
+```math
+-
+\frac{y_i}{\hat{y}_i}
+\hat{y}_i
+(1-\hat{y}_i)
 =
 -y_i(1-\hat{y}_i).
-$$
+```
 
-For $j\neq i$:
 
-$$
--\frac{y_j}{\hat{y}_j}
+For \(j \neq i\),
+
+```math
+-
+\frac{y_j}{\hat{y}_j}
 \left(
 -\hat{y}_j\hat{y}_i
 \right)
 =
 y_j\hat{y}_i.
-$$
+```
 
 Therefore,
 
-$$
+```math
 \frac{\partial L}{\partial z_i}
 =
 -y_i(1-\hat{y}_i)
 +
 \sum_{j\neq i}
 y_j\hat{y}_i.
-$$
+```
 
 Since
 
-$$
-\sum_{j=1}^{V}y_j=1,
-$$
+```math
+\sum_{j=1}^{V} y_j = 1,
+```
 
 we have
 
-$$
+```math
 \sum_{j\neq i}y_j
 =
 1-y_i.
-$$
+```
 
 Hence,
 
-$$
+```math
 \frac{\partial L}{\partial z_i}
 =
 -y_i(1-\hat{y}_i)
 +
 \hat{y}_i(1-y_i).
-$$
+```
 
 Expanding,
 
-$$
+```math
 =
 -y_i
 +
@@ -326,334 +446,260 @@ y_i\hat{y}_i
 \hat{y}_i
 -
 y_i\hat{y}_i.
-$$
+```
 
 The middle terms cancel:
 
-$$
+```math
 \boxed{
 \frac{\partial L}{\partial z_i}
 =
 \hat{y}_i-y_i
 }
-$$
+```
 
 Therefore, in vector form,
 
-$$
+```math
 \boxed{
 \frac{\partial L}{\partial \mathbf{z}}
 =
-\hat{\mathbf{y}}-\mathbf{y}
+\hat{\mathbf{y}}
+-
+\mathbf{y}
 }
-$$
+```
 
-## 4.2 Gradient w.r.t. output matrix
 
-The logits are
+### 4.2 Gradient w.r.t. output matrix
 
-$$
+Recall that
+
+```math
 \mathbf{z}
 =
 \mathbf{h}W_{\text{out}}.
-$$
+```
 
 Therefore,
 
-$$
-\frac{\partial L}{\partial W_{\text{out}}}
+```math
+\frac{\partial L}
+{\partial W_{\text{out}}}
 =
-\mathbf{h}^T
+\mathbf{h}^{T}
 \frac{\partial L}{\partial \mathbf{z}}.
-$$
+```
 
-Using
+Substituting the gradient with respect to the logits,
 
-$$
-\frac{\partial L}{\partial \mathbf{z}}
-=
-\hat{\mathbf{y}}-\mathbf{y},
-$$
-
-we obtain
-
-$$
+```math
 \boxed{
-\frac{\partial L}{\partial W_{\text{out}}}
+\frac{\partial L}
+{\partial W_{\text{out}}}
 =
-\mathbf{h}^T
+\mathbf{h}^{T}
 (\hat{\mathbf{y}}-\mathbf{y})
 }
-$$
+```
 
-## 4.3 Gradient w.r.t. hidden representation
+
+### 4.3 Gradient w.r.t. hidden representation
 
 Again,
 
-$$
+```math
 \mathbf{z}
 =
 \mathbf{h}W_{\text{out}}.
-$$
-
-The gradient with respect to the hidden representation is
-
-$$
-\frac{\partial L}{\partial \mathbf{h}}
-=
-\frac{\partial L}{\partial \mathbf{z}}
-W_{\text{out}}^T.
-$$
+```
 
 Therefore,
 
-$$
+```math
+\frac{\partial L}
+{\partial \mathbf{h}}
+=
+\frac{\partial L}
+{\partial \mathbf{z}}
+W_{\text{out}}^{T}.
+```
+
+Hence,
+
+```math
 \boxed{
-\frac{\partial L}{\partial \mathbf{h}}
+\frac{\partial L}
+{\partial \mathbf{h}}
 =
 (\hat{\mathbf{y}}-\mathbf{y})
-W_{\text{out}}^T
+W_{\text{out}}^{T}
 }
-$$
+```
 
-## 4.4 Gradient w.r.t. input embeddings
 
-In CBOW, the hidden representation is the average of the context embeddings:
+### 4.4 Gradient w.r.t. input embeddings
 
-$$
+The hidden representation is
+
+```math
 \mathbf{h}
 =
 \frac{1}{C}
 \sum_{c=1}^{C}
-W_{\text{in}}[w_c],
-$$
+W_{\text{in}}[w_c].
+```
 
-where $C$ is the number of context words.
+For every context word,
 
-For each context embedding,
-
-$$
+```math
 \frac{\partial \mathbf{h}}
 {\partial W_{\text{in}}[w_c]}
 =
 \frac{1}{C}.
-$$
+```
 
 Therefore,
 
-$$
+```math
 \frac{\partial L}
 {\partial W_{\text{in}}[w_c]}
 =
 \frac{1}{C}
-\frac{\partial L}{\partial \mathbf{h}}.
-$$
+\frac{\partial L}
+{\partial \mathbf{h}}.
+```
 
-Substituting the gradient with respect to $\mathbf{h}$,
+Substituting the gradient with respect to \(\mathbf{h}\),
 
-$$
+```math
 \boxed{
 \frac{\partial L}
 {\partial W_{\text{in}}[w_c]}
 =
 \frac{1}{C}
 (\hat{\mathbf{y}}-\mathbf{y})
-W_{\text{out}}^T
+W_{\text{out}}^{T}
 }
-$$
+```
 
-for every word $w_c$ in the context.
+for every context word \(w_c\).
 
-Rows of $W_{\text{in}}$ corresponding to words that are not present in the context receive zero gradient for this training example.
+Rows of \(W_{\text{in}}\) corresponding to words that do not occur in the current context receive zero gradient.
 
-# 5. Parameter update
 
-After computing the gradients, gradient descent updates the parameters as
+## 5. Parameter update
 
-$$
-\boxed{
+The output matrix is updated as
+
+```math
 W_{\text{out}}
 \leftarrow
 W_{\text{out}}
 -
 \eta
-\frac{\partial L}{\partial W_{\text{out}}}
-}
-$$
+\frac{\partial L}
+{\partial W_{\text{out}}}.
+```
 
-and
+The input embedding matrix is updated as
 
-$$
-\boxed{
+```math
 W_{\text{in}}
 \leftarrow
 W_{\text{in}}
 -
 \eta
-\frac{\partial L}{\partial W_{\text{in}}}
-}
-$$
+\frac{\partial L}
+{\partial W_{\text{in}}}.
+```
 
-where $\eta$ is the learning rate.
+Here, \(\eta\) is the learning rate.
 
-# Batch case
 
-For a batch of $N$ examples,
-
-$$
-H\in\mathbb{R}^{N\times d},
-$$
-
-$$
-W_{\text{out}}\in\mathbb{R}^{d\times V},
-$$
-
-and
-
-$$
-Z=HW_{\text{out}}
-\in\mathbb{R}^{N\times V}.
-$$
-
-The target and prediction matrices are
-
-$$
-Y,\hat{Y}\in\mathbb{R}^{N\times V}.
-$$
-
-If the loss is averaged over the batch,
-
-$$
-L
-=
-\frac{1}{N}
-\sum_{n=1}^{N}L_n,
-$$
-
-then
-
-$$
-\boxed{
-\frac{\partial L}{\partial Z}
-=
-\frac{1}{N}
-(\hat{Y}-Y)
-}
-$$
-
-and
-
-$$
-\boxed{
-\frac{\partial L}{\partial W_{\text{out}}}
-=
-\frac{1}{N}
-H^T(\hat{Y}-Y)
-}
-$$
-
-while
-
-$$
-\boxed{
-\frac{\partial L}{\partial H}
-=
-\frac{1}{N}
-(\hat{Y}-Y)
-W_{\text{out}}^T
-}
-$$
-
-The important point is that we do **not** first average gradients over classes and then over examples.
-
-The matrix
-
-$$
-\hat{Y}-Y
-$$
-
-already contains the gradient with respect to every logit of every training example.
-
-Aggregation over the batch occurs naturally when the gradients of the shared model parameters are computed.
-
-# 6. Tensor shapes
+## 6. Tensor shapes
 
 For one training example:
 
-$$
+```math
 W_{\text{in}}
 \in
 \mathbb{R}^{V\times d}
-$$
+```
 
-$$
+```math
 \mathbf{h}
 \in
 \mathbb{R}^{1\times d}
-$$
+```
 
-$$
+```math
 W_{\text{out}}
 \in
 \mathbb{R}^{d\times V}
-$$
+```
 
-$$
+```math
 \mathbf{z}
 \in
 \mathbb{R}^{1\times V}
-$$
+```
 
-$$
+```math
 \hat{\mathbf{y}},
 \mathbf{y}
 \in
 \mathbb{R}^{1\times V}
-$$
+```
 
-The main gradients are therefore
+The corresponding gradients have shapes
 
-$$
+```math
 \boxed{
-\frac{\partial L}{\partial \mathbf{z}}
+\frac{\partial L}
+{\partial \mathbf{z}}
 =
 \hat{\mathbf{y}}-\mathbf{y}
 }
 \qquad
 1\times V
-$$
+```
 
-$$
+```math
 \boxed{
-\frac{\partial L}{\partial W_{\text{out}}}
+\frac{\partial L}
+{\partial W_{\text{out}}}
 =
-\mathbf{h}^T(\hat{\mathbf{y}}-\mathbf{y})
+\mathbf{h}^{T}
+(\hat{\mathbf{y}}-\mathbf{y})
 }
 \qquad
 d\times V
-$$
+```
 
-$$
+```math
 \boxed{
-\frac{\partial L}{\partial \mathbf{h}}
+\frac{\partial L}
+{\partial \mathbf{h}}
 =
-(\hat{\mathbf{y}}-\mathbf{y})W_{\text{out}}^T
+(\hat{\mathbf{y}}-\mathbf{y})
+W_{\text{out}}^{T}
 }
 \qquad
 1\times d
-$$
+```
 
-and, for every context word,
+For every context word,
 
-$$
+```math
 \boxed{
 \frac{\partial L}
 {\partial W_{\text{in}}[w_c]}
 =
 \frac{1}{C}
 (\hat{\mathbf{y}}-\mathbf{y})
-W_{\text{out}}^T
+W_{\text{out}}^{T}
 }
 \qquad
-1\times d.
-$$
+1\times d
+```
