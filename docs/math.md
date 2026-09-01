@@ -1,95 +1,111 @@
 # Continuous Bag of Words — Mathematics
 
 ## 1. Problem formulation
-We need to create a numerical representation of a word (embedding) using the context to the left and to the right from this word in text
+
+The goal of Continuous Bag of Words (CBOW) is to predict a target word from the words surrounding it.
+
+For each training example, we take a context of $C$ words, map them to their input embeddings, average those embeddings, and use the resulting hidden representation to predict the target word.
+
+The trainable parameters are:
+
+- the input embedding matrix $W_{\text{in}}$;
+- the output matrix $W_{\text{out}}$.
+
 
 ## 2. Notation
-## Notation
 
-Let $\mathcal{V}$ be the vocabulary and
+Let $\mathcal{V}$ be the vocabulary and let
 
-$$
+```math
 |\mathcal{V}| = V
-$$
+```
+
+where $V$ is the vocabulary size.
 
 Let $d$ be the embedding dimension.
-
-The input and output weight matrices are
-
-$$
-W_{in} \in \mathbb{R}^{V \times d}
-$$
-
-and
-
-$$
-W_{out} \in \mathbb{R}^{d \times V}.
-$$
-
-For a context of $C$ words,
-
-$$
-h =
-\frac{1}{C}
-\sum_{i=1}^{C}
-W_{in}[I_i, :]
-$$
-
-where
-
-$$
-h \in \mathbb{R}^{1 \times d}.
-$$
-
-The logits are
-
-$$
-z = hW_{out},
-$$
-
-therefore
-
-$$
-z \in \mathbb{R}^{1 \times V}.
-$$  
-
-Hence,
-
-$$
-\hat{y}_j =
-\frac{\exp(z_j)}
-{\sum_{k=1}^{V} \exp(z_k)}
-$$
-
-for $j = 1, \ldots, V$.
-## 3. Forward pass
-
-### 3.1 Context embeddings
-
-Let the vocabulary size be $V$, the embedding dimension be $d$, and the context size be $C$.
 
 The input embedding matrix is
 
 ```math
-W_{\text{in}} \in \mathbb{R}^{V \times d}.
+W_{\text{in}}
+\in
+\mathbb{R}^{V \times d}.
 ```
 
-For each context word $w_c$, where $c = 1,\dots,C$, we select the corresponding row of $W_{\text{in}}$:
+The output matrix is
 
 ```math
-\mathbf{e}_c = W_{\text{in}}[w_c].
+W_{\text{out}}
+\in
+\mathbb{R}^{d \times V}.
 ```
 
-Each context embedding has shape
+For one training example:
+
+- $C$ is the number of context words;
+- $\mathbf{x} \in \mathbb{R}^{1 \times V}$ is the context vector;
+- $\mathbf{h} \in \mathbb{R}^{1 \times d}$ is the hidden representation;
+- $\mathbf{z} \in \mathbb{R}^{1 \times V}$ is the vector of logits;
+- $\hat{\mathbf{y}} \in \mathbb{R}^{1 \times V}$ is the predicted probability vector;
+- $\mathbf{y} \in \mathbb{R}^{1 \times V}$ is the one-hot target vector.
+
+
+## 3. Forward pass
+
+### 3.1 Context representation
+
+Suppose the context contains words
 
 ```math
-\mathbf{e}_c \in \mathbb{R}^{1 \times d}.
+w_1, w_2, \dots, w_C.
 ```
+
+Each context word corresponds to one row of $W_{\text{in}}$.
+
+For the $c$-th context word,
+
+```math
+\mathbf{e}_c
+=
+W_{\text{in}}[w_c].
+```
+
+Each embedding has shape
+
+```math
+\mathbf{e}_c
+\in
+\mathbb{R}^{1 \times d}.
+```
+
+The same context can be represented by a sparse context vector
+
+```math
+\mathbf{x}
+\in
+\mathbb{R}^{1 \times V}.
+```
+
+Its $j$-th component is
+
+```math
+x_j
+=
+\frac{
+\text{count of vocabulary word } j \text{ in the context}
+}{C}.
+```
+
+Therefore:
+
+- words not present in the context have $x_j=0$;
+- a word appearing once has $x_j=1/C$;
+- if a word appears several times, its weight increases accordingly.
 
 
 ### 3.2 Context aggregation
 
-CBOW combines the context embeddings by taking their average:
+CBOW averages the context embeddings:
 
 ```math
 \mathbf{h}
@@ -109,22 +125,28 @@ Equivalently,
 W_{\text{in}}[w_c].
 ```
 
+Using the context vector $\mathbf{x}$, the same operation can be written in matrix form:
+
+```math
+\boxed{
+\mathbf{h}
+=
+\mathbf{x}W_{\text{in}}
+}
+```
+
+Indeed, multiplication by $\mathbf{x}$ selects the context rows of $W_{\text{in}}$ with the correct averaging weights.
+
 The hidden representation has shape
 
 ```math
-\mathbf{h} \in \mathbb{R}^{1 \times d}.
+\mathbf{h}
+\in
+\mathbb{R}^{1 \times d}.
 ```
 
 
 ### 3.3 Output logits
-
-The output embedding matrix is
-
-```math
-W_{\text{out}}
-\in
-\mathbb{R}^{d \times V}.
-```
 
 The logits are computed as
 
@@ -142,13 +164,14 @@ Therefore,
 \mathbb{R}^{1 \times V}.
 ```
 
-For a particular vocabulary element \(i\),
+For a particular vocabulary element $i$,
 
 ```math
 z_i
 =
 \sum_{r=1}^{d}
-h_r W_{\text{out},ri}.
+h_r
+W_{\text{out},ri}.
 ```
 
 
@@ -160,7 +183,7 @@ The logits are converted into probabilities using softmax:
 \hat{y}_i
 =
 \frac{e^{z_i}}
-{\sum_{k=1}^{V} e^{z_k}}.
+{\sum_{k=1}^{V}e^{z_k}}.
 ```
 
 Define
@@ -180,7 +203,7 @@ Then
 ```
 
 
-#### Softmax derivative for \(i=j\)
+#### Softmax derivative for $i=j$
 
 We first compute
 
@@ -206,6 +229,8 @@ e^{z_i}e^{z_i}
 Factor out $e^{z_i}$:
 
 ```math
+\frac{\partial \hat{y}_i}
+{\partial z_i}
 =
 \frac{
 e^{z_i}(S-e^{z_i})
@@ -213,9 +238,11 @@ e^{z_i}(S-e^{z_i})
 {S^2}.
 ```
 
-Split the expression:
+Split the fraction:
 
 ```math
+\frac{\partial \hat{y}_i}
+{\partial z_i}
 =
 \frac{e^{z_i}}{S}
 \left(
@@ -223,7 +250,7 @@ Split the expression:
 \right).
 ```
 
-Hence,
+Therefore,
 
 ```math
 \boxed{
@@ -245,7 +272,7 @@ For
 \frac{e^{z_j}}{S},
 ```
 
-take the derivative with respect to $z_i$, where $i \neq j$.
+take the derivative with respect to $z_i$, where $i\neq j$.
 
 Since $e^{z_j}$ does not depend on $z_i$,
 
@@ -278,7 +305,7 @@ e^{z_j}e^{z_i}
 {S^2}.
 ```
 
-Thus,
+Hence,
 
 ```math
 \boxed{
@@ -289,7 +316,7 @@ Thus,
 }
 ```
 
-for $i \neq j$.
+for $i\neq j$.
 
 Both cases can be written using the Kronecker delta:
 
@@ -334,7 +361,7 @@ y_j
 
 Since $\mathbf{y}$ is one-hot, only the target word contributes to the loss.
 
-If \(t\) is the index of the target word,
+If $t$ is the index of the target word,
 
 ```math
 L
@@ -359,24 +386,27 @@ The derivative with respect to a particular predicted probability is
 
 ### 4.1 Gradient w.r.t. logits
 
-We want to find
+We want to compute
 
 ```math
-\frac{\partial L}{\partial z_i}.
+\frac{\partial L}
+{\partial z_i}.
 ```
 
-Since every softmax output $\hat{y}_j$ depends on $z_i$, the chain rule gives
+Every softmax output $\hat{y}_j$ depends on $z_i$, so the chain rule gives
 
 ```math
-\frac{\partial L}{\partial z_i}
+\frac{\partial L}
+{\partial z_i}
 =
 \sum_{j=1}^{V}
-\frac{\partial L}{\partial \hat{y}_j}
-\frac{\partial \hat{y}_j}{\partial z_i}.
+\frac{\partial L}
+{\partial \hat{y}_j}
+\frac{\partial \hat{y}_j}
+{\partial z_i}.
 ```
 
-
-For \(j=i\),
+For $j=i$,
 
 ```math
 -
@@ -387,8 +417,7 @@ For \(j=i\),
 -y_i(1-\hat{y}_i).
 ```
 
-
-For \(j \neq i\),
+For $j\neq i$,
 
 ```math
 -
@@ -403,7 +432,8 @@ y_j\hat{y}_i.
 Therefore,
 
 ```math
-\frac{\partial L}{\partial z_i}
+\frac{\partial L}
+{\partial z_i}
 =
 -y_i(1-\hat{y}_i)
 +
@@ -414,7 +444,9 @@ y_j\hat{y}_i.
 Since
 
 ```math
-\sum_{j=1}^{V} y_j = 1,
+\sum_{j=1}^{V}y_j
+=
+1,
 ```
 
 we have
@@ -428,7 +460,8 @@ we have
 Hence,
 
 ```math
-\frac{\partial L}{\partial z_i}
+\frac{\partial L}
+{\partial z_i}
 =
 -y_i(1-\hat{y}_i)
 +
@@ -438,6 +471,8 @@ Hence,
 Expanding,
 
 ```math
+\frac{\partial L}
+{\partial z_i}
 =
 -y_i
 +
@@ -452,7 +487,8 @@ The middle terms cancel:
 
 ```math
 \boxed{
-\frac{\partial L}{\partial z_i}
+\frac{\partial L}
+{\partial z_i}
 =
 \hat{y}_i-y_i
 }
@@ -462,7 +498,8 @@ Therefore, in vector form,
 
 ```math
 \boxed{
-\frac{\partial L}{\partial \mathbf{z}}
+\frac{\partial L}
+{\partial \mathbf{z}}
 =
 \hat{\mathbf{y}}
 -
@@ -488,7 +525,8 @@ Therefore,
 {\partial W_{\text{out}}}
 =
 \mathbf{h}^{T}
-\frac{\partial L}{\partial \mathbf{z}}.
+\frac{\partial L}
+{\partial \mathbf{z}}.
 ```
 
 Substituting the gradient with respect to the logits,
@@ -501,6 +539,14 @@ Substituting the gradient with respect to the logits,
 \mathbf{h}^{T}
 (\hat{\mathbf{y}}-\mathbf{y})
 }
+```
+
+Shape check:
+
+```math
+(d\times 1)(1\times V)
+=
+d\times V.
 ```
 
 
@@ -537,20 +583,28 @@ W_{\text{out}}^{T}
 }
 ```
 
+Shape check:
+
+```math
+(1\times V)(V\times d)
+=
+1\times d.
+```
+
 
 ### 4.4 Gradient w.r.t. input embeddings
 
-The hidden representation is
+From
 
 ```math
 \mathbf{h}
 =
 \frac{1}{C}
 \sum_{c=1}^{C}
-W_{\text{in}}[w_c].
+W_{\text{in}}[w_c],
 ```
 
-For every context word,
+each occurrence of a context word contributes
 
 ```math
 \frac{\partial \mathbf{h}}
@@ -559,7 +613,7 @@ For every context word,
 \frac{1}{C}.
 ```
 
-Therefore,
+Therefore, for each occurrence $w_c$,
 
 ```math
 \frac{\partial L}
@@ -570,7 +624,7 @@ Therefore,
 {\partial \mathbf{h}}.
 ```
 
-Substituting the gradient with respect to \(\mathbf{h}\),
+Substituting the gradient with respect to $\mathbf{h}$,
 
 ```math
 \boxed{
@@ -583,14 +637,77 @@ W_{\text{out}}^{T}
 }
 ```
 
-for every context word $w_c$
+If the same vocabulary word appears more than once in the context, the gradient contributions for that row are added together.
 
-Rows of $W_{in}$ corresponding to words that do not occur in the current context receive zero gradient.
+Rows of $W_{\text{in}}$ corresponding to words not present in the current context receive zero gradient.
+
+
+#### Full matrix gradient for $W_{\text{in}}$
+
+Using the matrix representation
+
+```math
+\mathbf{h}
+=
+\mathbf{x}W_{\text{in}},
+```
+
+the gradient with respect to the entire input embedding matrix is
+
+```math
+\frac{\partial L}
+{\partial W_{\text{in}}}
+=
+\mathbf{x}^{T}
+\frac{\partial L}
+{\partial \mathbf{h}}.
+```
+
+Since
+
+```math
+\frac{\partial L}
+{\partial \mathbf{h}}
+=
+(\hat{\mathbf{y}}-\mathbf{y})
+W_{\text{out}}^{T},
+```
+
+we obtain
+
+```math
+\boxed{
+\frac{\partial L}
+{\partial W_{\text{in}}}
+=
+\mathbf{x}^{T}
+(\hat{\mathbf{y}}-\mathbf{y})
+W_{\text{out}}^{T}
+}
+```
+
+Shape check:
+
+```math
+(V\times 1)(1\times d)
+=
+V\times d,
+```
+
+where
+
+```math
+(1\times d)
+=
+(1\times V)(V\times d).
+```
+
+This full matrix formula is equivalent to the row-wise result above.
 
 
 ## 5. Parameter update
 
-The output matrix is updated as
+Using gradient descent, the output matrix is updated as
 
 ```math
 W_{\text{out}}
@@ -619,12 +736,18 @@ Here, $\eta$ is the learning rate.
 
 ## 6. Tensor shapes
 
-For one training example:
+### 6.1 One training example
 
 ```math
 W_{\text{in}}
 \in
 \mathbb{R}^{V\times d}
+```
+
+```math
+\mathbf{x}
+\in
+\mathbb{R}^{1\times V}
 ```
 
 ```math
@@ -652,7 +775,7 @@ W_{\text{out}}
 \mathbb{R}^{1\times V}
 ```
 
-The corresponding gradients have shapes
+The main gradients are
 
 ```math
 \boxed{
@@ -661,9 +784,9 @@ The corresponding gradients have shapes
 =
 \hat{\mathbf{y}}-\mathbf{y}
 }
-\qquad
-1\times V
 ```
+
+with shape $1\times V$,
 
 ```math
 \boxed{
@@ -673,9 +796,9 @@ The corresponding gradients have shapes
 \mathbf{h}^{T}
 (\hat{\mathbf{y}}-\mathbf{y})
 }
-\qquad
-d\times V
 ```
+
+with shape $d\times V$,
 
 ```math
 \boxed{
@@ -685,21 +808,144 @@ d\times V
 (\hat{\mathbf{y}}-\mathbf{y})
 W_{\text{out}}^{T}
 }
-\qquad
-1\times d
 ```
 
-For every context word,
+with shape $1\times d$, and
 
 ```math
 \boxed{
 \frac{\partial L}
-{\partial W_{\text{in}}[w_c]}
+{\partial W_{\text{in}}}
 =
-\frac{1}{C}
+\mathbf{x}^{T}
 (\hat{\mathbf{y}}-\mathbf{y})
 W_{\text{out}}^{T}
 }
-\qquad
-1\times d
 ```
+
+with shape $V\times d$.
+
+
+### 6.2 Batch of training examples
+
+For a batch of $N$ training examples, stack the context vectors into the matrix
+
+```math
+X
+=
+\begin{pmatrix}
+\mathbf{x}_1 \\
+\mathbf{x}_2 \\
+\vdots \\
+\mathbf{x}_N
+\end{pmatrix}
+\in
+\mathbb{R}^{N\times V}.
+```
+
+The hidden representations are
+
+```math
+H
+=
+XW_{\text{in}},
+```
+
+where
+
+```math
+H
+\in
+\mathbb{R}^{N\times d}.
+```
+
+The logits are
+
+```math
+Z
+=
+HW_{\text{out}},
+```
+
+where
+
+```math
+Z
+\in
+\mathbb{R}^{N\times V}.
+```
+
+The target and prediction matrices are
+
+```math
+Y,
+\hat{Y}
+\in
+\mathbb{R}^{N\times V}.
+```
+
+If the loss is averaged over the batch,
+
+```math
+L
+=
+\frac{1}{N}
+\sum_{n=1}^{N}
+L_n,
+```
+
+then
+
+```math
+\boxed{
+\frac{\partial L}
+{\partial Z}
+=
+\frac{1}{N}
+(\hat{Y}-Y)
+}
+```
+
+The gradient with respect to the output matrix is
+
+```math
+\boxed{
+\frac{\partial L}
+{\partial W_{\text{out}}}
+=
+\frac{1}{N}
+H^{T}
+(\hat{Y}-Y)
+}
+```
+
+The gradient with respect to the hidden representations is
+
+```math
+\boxed{
+\frac{\partial L}
+{\partial H}
+=
+\frac{1}{N}
+(\hat{Y}-Y)
+W_{\text{out}}^{T}
+}
+```
+
+The full gradient with respect to the input embedding matrix is
+
+```math
+\boxed{
+\frac{\partial L}
+{\partial W_{\text{in}}}
+=
+\frac{1}{N}
+X^{T}
+(\hat{Y}-Y)
+W_{\text{out}}^{T}
+}
+```
+
+The matrix $\hat{Y}-Y$ already contains the gradient with respect to every logit of every training example.
+
+We do not average first over classes and then over examples. Aggregation over the batch occurs naturally when the gradients of the shared parameter matrices are computed.
