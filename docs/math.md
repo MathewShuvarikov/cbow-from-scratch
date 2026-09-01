@@ -583,9 +583,9 @@ W_{\text{out}}^{T}
 }
 ```
 
-for every context word \(w_c\).
+for every context word $w_c$
 
-Rows of \(W_{\text{in}}\) corresponding to words that do not occur in the current context receive zero gradient.
+Rows of $W_{in}$ corresponding to words that do not occur in the current context receive zero gradient.
 
 
 ## 5. Parameter update
@@ -614,7 +614,7 @@ W_{\text{in}}
 {\partial W_{\text{in}}}.
 ```
 
-Here, \(\eta\) is the learning rate.
+Here, $\eta$ is the learning rate.
 
 
 ## 6. Tensor shapes
