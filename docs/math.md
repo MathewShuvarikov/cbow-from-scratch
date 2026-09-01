@@ -203,7 +203,7 @@ e^{z_i}e^{z_i}
 {S^2}.
 ```
 
-Factor out \(e^{z_i}\):
+Factor out $e^{z_i}$:
 
 ```math
 =
@@ -235,7 +235,7 @@ Hence,
 ```
 
 
-#### Softmax derivative for \(i \neq j\)
+#### Softmax derivative for $i \neq j$
 
 For
 
@@ -245,9 +245,9 @@ For
 \frac{e^{z_j}}{S},
 ```
 
-take the derivative with respect to \(z_i\), where \(i \neq j\).
+take the derivative with respect to $z_i$, where $i \neq j$.
 
-Since \(e^{z_j}\) does not depend on \(z_i\),
+Since $e^{z_j}$ does not depend on $z_i$,
 
 ```math
 \frac{\partial e^{z_j}}
@@ -289,7 +289,7 @@ Thus,
 }
 ```
 
-for \(i \neq j\).
+for $i \neq j$.
 
 Both cases can be written using the Kronecker delta:
 
@@ -332,7 +332,7 @@ y_j
 \ln \hat{y}_j.
 ```
 
-Since \(\mathbf{y}\) is one-hot, only the target word contributes to the loss.
+Since $\mathbf{y}$ is one-hot, only the target word contributes to the loss.
 
 If \(t\) is the index of the target word,
 
@@ -365,7 +365,7 @@ We want to find
 \frac{\partial L}{\partial z_i}.
 ```
 
-Since every softmax output \(\hat{y}_j\) depends on \(z_i\), the chain rule gives
+Since every softmax output $\hat{y}_j$ depends on $z_i$, the chain rule gives
 
 ```math
 \frac{\partial L}{\partial z_i}
