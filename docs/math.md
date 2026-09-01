@@ -66,7 +66,7 @@ for $j = 1, \ldots, V$.
 
 ### 3.1 Context embeddings
 
-Let the vocabulary size be \(V\), the embedding dimension be \(d\), and the context size be \(C\).
+Let the vocabulary size be $V$, the embedding dimension be $d$, and the context size be $C$.
 
 The input embedding matrix is
 
@@ -74,7 +74,7 @@ The input embedding matrix is
 W_{\text{in}} \in \mathbb{R}^{V \times d}.
 ```
 
-For each context word \(w_c\), where \(c = 1,\dots,C\), we select the corresponding row of \(W_{\text{in}}\):
+For each context word $w_c$, where $c = 1,\dots,C$, we select the corresponding row of $W_{\text{in}}$:
 
 ```math
 \mathbf{e}_c = W_{\text{in}}[w_c].
