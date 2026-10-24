@@ -86,3 +86,34 @@ print(grad_num)
 print("Analytical:", grad_analytic)
 print("Numerical:", grad_num)
 print("Absolute error:", abs(grad_analytic - grad_num))
+
+
+# 7.2
+dW_out_numeric = np.zeros_like(W_out)
+for i, j in np.ndindex(W_out.shape):
+    E = np.zeros_like(W_out)
+    E[i, j] = 1
+    eps = 10e-6
+    L_0 = compute_loss(x, target_id, W_in, (W_out-eps*E))
+    L_1 = compute_loss(x, target_id, W_in, (W_out+eps*E))
+
+    dW_out_numeric[i, j] = (L_1-L_0)/(2*eps)
+
+max_error = np.max(np.abs(dW_out - dW_out_numeric))
+print("Max absolute error:", max_error)
+print("Gradients match:", np.allclose(dW_out, dW_out_numeric))
+
+# 7.3
+dW_in_numeric = np.zeros_like(W_in)
+for i, j in np.ndindex(W_in.shape):
+    E = np.zeros_like(W_in)
+    E[i, j] = 1
+    eps = 10e-6
+    L_0 = compute_loss(x, target_id, (W_in-eps*E), W_out)
+    L_1 = compute_loss(x, target_id, (W_in+eps*E), W_out)
+
+    dW_in_numeric[i, j] = (L_1-L_0)/(2*eps)
+
+max_error = np.max(np.abs(dW_in - dW_in_numeric))
+print("Max absolute error:", max_error)
+print("Gradients match:", np.allclose(dW_in, dW_in_numeric))
