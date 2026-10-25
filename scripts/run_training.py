@@ -3,6 +3,13 @@ from cbow.data import (tokenize,
                        build_vocab, 
                        encode_tokens, 
                        create_training_pairs)
+from cbow.model import (create_context_vector,
+                        softmax, 
+                        compute_hidden,
+                        compute_logits,
+                        cross_entropy
+
+)
 from cbow.metrics import theoretical_loss_bound
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,3 +50,21 @@ plt.xlabel('Epoch')
 plt.ylabel('Cross-Entropy')
 plt.legend()
 plt.savefig("assets/loss_plot.png", dpi=150, bbox_inches="tight")
+
+print('-'*100)
+inverse_vocab = {value: key for key, value in vocab.items()}
+loss = []
+for context, target_id in training_pairs:
+    x = create_context_vector(context, vocab_size= len(vocab))
+    h = compute_hidden(x, W_in)
+    logits = compute_logits(h, W_out)
+    probs = softmax(logits)
+
+    print(context, f'Probability of correct word "{inverse_vocab[target_id]}" = {probs[0][target_id]:.3f}')
+    print(np.argmax(probs[0]))
+    print(f'Max probability word - {np.max(probs[0])}- "{inverse_vocab[np.argmax(probs[0])]}"')
+    print('-'*100)
+    loss.append(cross_entropy(probs, target_id))
+
+print(f'Eval Cross-Entropy: {np.mean(loss):.3f}')
+
