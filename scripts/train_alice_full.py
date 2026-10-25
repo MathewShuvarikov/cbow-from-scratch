@@ -36,9 +36,9 @@ vocab = build_vocab(tokens)
 frequencies = Counter(tokens)
 
 window_size = 2
-embedding_dim = 20
+embedding_dim = 30
 learning_rate = 0.05
-epochs = 30
+epochs = 100
 
 token_ids = encode_tokens(tokens, vocab)
 training_pairs = create_training_pairs(token_ids, window_size)
