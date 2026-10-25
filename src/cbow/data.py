@@ -4,7 +4,7 @@ import re
 #     return text.lower().split()
 
 def tokenize(text: str) -> list[str]:
-    return re.findall(r"[^\W\d_]+(?:-[^\W\d_]+)*", text.lower())
+    return re.findall(r"[^\W\d_]+(?:[-'’][^\W\d_]+)*", text.lower())
 
 def build_vocab(tokens: list[str]) -> dict[str, int]:
     vocab = {}
