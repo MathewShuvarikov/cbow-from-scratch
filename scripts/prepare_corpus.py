@@ -5,6 +5,7 @@ from cbow.data import (
 )
 from cbow.train import train_cbow
 from cbow.metrics import theoretical_loss_bound
+from cbow.evaluation import most_similar
 import matplotlib.pyplot as plt
 
 text = Path("data/raw/alice.txt").read_text(encoding="utf-8")
@@ -59,3 +60,13 @@ plt.xlabel('Epoch')
 plt.ylabel('Cross-Entropy')
 plt.legend()
 plt.savefig("assets/alice_loss_plot.png", dpi=150, bbox_inches="tight")
+
+for word in ["alice", "rabbit", "little", "said"]:
+    print(f"\n{word}: frequency = {frequency_tokens[word]}")
+
+    for neighbor, similarity in most_similar(word, vocab, W_in, top_k=10):
+        print(
+            f"{neighbor:20s} "
+            f"similarity={similarity:.3f} "
+            f"frequency={frequency_tokens[neighbor]}"
+        )
