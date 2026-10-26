@@ -1,0 +1,13 @@
+{
+  "tokens": 26630,
+  "vocab_size": 2669,
+  "training_pairs": 26626,
+  "window_size": 2,
+  "embedding_dim": 30,
+  "learning_rate": 0.05,
+  "epochs": 100,
+  "initial_epoch_loss": 7.24960910285405,
+  "final_epoch_loss": 1.760215676350445,
+  "empirical_loss_bound": 0.015299566379833278,
+  "initialization_seed": 42
+}

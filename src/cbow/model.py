@@ -60,6 +60,19 @@ def cross_entropy(
 
     return float(-np.log(y_hat[0, target_id]))
 
+def cross_entropy_from_logits(
+    logits: np.ndarray,
+    target_id: int
+) -> float:
+
+    max_logit = np.max(logits)
+
+    log_sum_exp = max_logit + np.log(
+        np.sum(np.exp(logits - max_logit))
+    )
+
+    return float(log_sum_exp - logits[0, target_id])
+
 def compute_logits_gradient(
     y_hat: np.ndarray,
     target_id: int
@@ -130,5 +143,5 @@ def compute_loss(
 
     hidden = compute_hidden(context_vector, W_in)
     logits = compute_logits(hidden, W_out)
-    y_hat = softmax(logits)
-    return cross_entropy(y_hat, target_id)
+
+    return cross_entropy_from_logits(logits, target_id)

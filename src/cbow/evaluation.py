@@ -3,27 +3,63 @@ import numpy as np
 def most_similar(
     word: str,
     vocab: dict[str, int],
-    embeddings: np.ndarray, # V x Edim, 
-    top_k: int = 5
+    embeddings: np.ndarray,
+    top_k: int = 5,
+    *,
+    frequencies: dict[str, int] | None = None,
+    min_frequency: int = 1,
 ) -> list[tuple[str, float]]:
 
+    if top_k < 1:
+        raise ValueError("top_k must be positive")
+
+    if min_frequency < 1:
+        raise ValueError("min_frequency must be positive")
+
+    if min_frequency > 1 and frequencies is None:
+        raise ValueError(
+            "frequencies are required for min_frequency > 1"
+        )
+
+    if embeddings.ndim != 2 or embeddings.shape[0] != len(vocab):
+        raise ValueError(
+            "embeddings must have shape "
+            "(vocab_size, embedding_dim)"
+        )
+
+    if word not in vocab:
+        raise KeyError(f"{word!r} is not in the vocabulary")
+
     word_idx = vocab[word]
-    word_embedding = embeddings[word_idx] # (Edim, )
 
-    scalar_product = word_embedding @ embeddings.T # (V, )
-    norms = np.linalg.norm(embeddings, axis=1, ord=2)
+    norms = np.linalg.norm(embeddings, axis=1)
 
-    cos_sim = scalar_product / (norms*norms[word_idx])
+    if norms[word_idx] == 0:
+        raise ValueError("query word has a zero embedding")
 
-    top_k_elements = np.argsort(cos_sim)[::-1]
-    top_k_elements = top_k_elements[top_k_elements!=word_idx]
-    top_k_elements = top_k_elements[:top_k]
+    # Exclude zero vectors and the query word
+    eligible = norms > 0
+    eligible[word_idx] = False
 
+    # Optional frequency filtering
+    if frequencies is not None:
+        for token, idx in vocab.items():
+            if frequencies.get(token, 0) < min_frequency:
+                eligible[idx] = False
 
-    inverse_vocab = {value: key for key, value in vocab.items()}
+    candidate_ids = np.flatnonzero(eligible)
 
-    result = []
-    for i in top_k_elements:
-        result.append((inverse_vocab[i], float(cos_sim[i])))
+    scores = (
+        embeddings[candidate_ids] @ embeddings[word_idx]
+    ) / (norms[candidate_ids] * norms[word_idx])
 
-    return result
+    order = np.argsort(-scores, kind="stable")[:top_k]
+
+    inverse_vocab = {
+        idx: token for token, idx in vocab.items()
+    }
+
+    return [
+        (inverse_vocab[int(candidate_ids[i])], float(scores[i]))
+        for i in order
+    ]

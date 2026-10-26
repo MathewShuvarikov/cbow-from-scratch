@@ -7,7 +7,7 @@ from cbow.model import (create_context_vector,
                         softmax, 
                         compute_hidden,
                         compute_logits,
-                        cross_entropy
+                        cross_entropy_from_logits
 
 )
 from cbow.metrics import theoretical_loss_bound
@@ -26,7 +26,7 @@ vocab = build_vocab(tokens)
 token_ids = encode_tokens(tokens, vocab)
 training_pairs = create_training_pairs(token_ids, window_size)
 
-W_in, W_out, epoch_losses = train_cbow(training_pairs, 
+W_in, W_out, epoch_losses, epoch_end_losses = train_cbow(training_pairs,
                                        vocab_size=len(vocab), 
                                        embedding_dim=embedding_dim, 
                                        learning_rate=learning_rate,
@@ -38,6 +38,11 @@ print(f"Minimum Loss: {min(epoch_losses):.6f}")
 print(f"Theoretical Loss Bound: {theor_loss_bound:.6f}")
 
 plt.plot(range(1, epochs + 1), epoch_losses, label="Training Loss")
+plt.plot(
+    range(1, epochs + 1),
+    epoch_end_losses,
+    label="Epoch-end Training Loss",
+)
 
 plt.axhline(
     y=theor_loss_bound,
@@ -64,7 +69,7 @@ for context, target_id in training_pairs:
     print(np.argmax(probs[0]))
     print(f'Max probability word - {np.max(probs[0])}- "{inverse_vocab[np.argmax(probs[0])]}"')
     print('-'*100)
-    loss.append(cross_entropy(probs, target_id))
+    loss.append(cross_entropy_from_logits(probs, target_id))
 
 print(f'Eval Cross-Entropy: {np.mean(loss):.3f}')
 

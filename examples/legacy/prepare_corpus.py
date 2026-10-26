@@ -35,7 +35,7 @@ epochs = 100
 token_ids = encode_tokens(tokens, vocab)
 training_pairs = create_training_pairs(token_ids, window_size)
 
-W_in, W_out, epoch_losses = train_cbow(training_pairs, 
+W_in, W_out, epoch_losses, epoch_end_losses = train_cbow(training_pairs,
                                        vocab_size=len(vocab), 
                                        embedding_dim=embedding_dim, 
                                        learning_rate=learning_rate,
@@ -47,7 +47,13 @@ print(f"Final Loss: {epoch_losses[-1]:.6f}")
 print(f"Minimum Loss: {min(epoch_losses):.6f}")
 print(f"Theoretical Loss Bound: {theor_loss_bound:.6f}")
 
-plt.plot(range(1, epochs + 1), epoch_losses, label="Training Loss")
+plt.plot(range(1, epochs + 1), epoch_losses , label="Training Loss")
+plt.plot(
+    range(1, epochs + 1),
+    epoch_end_losses,
+    label="Epoch-end Training Loss",
+)
+plt.legend()
 
 plt.axhline(
     y=theor_loss_bound,

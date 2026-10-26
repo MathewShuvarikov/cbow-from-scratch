@@ -1,19 +1,40 @@
-# Virtual environment
+# Python environment
 .venv/
-
-# Python bytecode and cache
+venv/
 __pycache__/
 *.py[cod]
-
-# Python packaging
 *.egg-info/
 build/
 dist/
 
-# Testing
+# Tests and coverage
 .pytest_cache/
 .coverage
 htmlcov/
 
 # IDE
 .idea/
+.vscode/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Raw data
+data/raw/
+
+# Ignore experiment outputs by default
+artifacts/*
+
+# Keep the curated Alice experiment
+!artifacts/alice_full/
+artifacts/alice_full/*
+
+!artifacts/alice_full/model.npz
+!artifacts/alice_full/metadata.json
+!artifacts/alice_full/vocab.json
+!artifacts/alice_full/frequencies.json
+!artifacts/alice_full/neighbors.json
+!artifacts/alice_full/loss_curve.png
+!artifacts/alice_full/embeddings_pca.png

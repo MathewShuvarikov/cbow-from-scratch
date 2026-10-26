@@ -9,9 +9,43 @@ from sklearn.decomposition import PCA
 
 from cbow.evaluation import most_similar
 
+import argparse
+
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "artifacts" / "alice_full"
+
+parser = argparse.ArgumentParser(
+    description="Evaluate saved CBOW embeddings"
+)
+
+parser.add_argument(
+    "--out-dir",
+    type=Path,
+    default=Path("artifacts/alice_full"),
+    help="Directory containing trained model artifacts",
+)
+
+args = parser.parse_args()
+
+OUT = (ROOT / args.out_dir).resolve()
+
+required_files = [
+    "model.npz",
+    "vocab.json",
+    "frequencies.json",
+]
+
+missing_files = [
+    name
+    for name in required_files
+    if not (OUT / name).is_file()
+]
+
+if missing_files:
+    parser.error(
+        f"Missing files in {OUT}: "
+        f"{', '.join(missing_files)}"
+    )
 
 # 1. Load saved model
 with np.load(OUT / "model.npz") as model:
@@ -35,7 +69,14 @@ for word in focus_words:
     if word not in vocab:
         continue
 
-    neighbors = most_similar(word, vocab, W_in, top_k=10)
+    neighbors = most_similar(
+    word,
+    vocab,
+    W_in,
+    top_k=10,
+    frequencies=frequencies,
+    min_frequency=5,
+    )
     results[word] = neighbors
 
     print(f"\n{word} (frequency={frequencies[word]}):")
@@ -62,6 +103,12 @@ frequent_ids = [
     for word, count in frequencies.items()
     if count >= 5
 ]
+
+if len(frequent_ids) < 2:
+    raise ValueError(
+        "PCA requires at least two words "
+        "with frequency >= 5"
+    )
 
 pca = PCA(n_components=2)
 pca.fit(E[frequent_ids])
