@@ -17,6 +17,9 @@ def create_context_vector(
     vocab_size: int
 ) -> np.ndarray:
 
+    if not context:
+        raise ValueError("context must not be empty")
+
     x = np.zeros(shape=(1, vocab_size))
 
     for i in context:
