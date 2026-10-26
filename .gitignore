@@ -38,3 +38,5 @@ artifacts/alice_full/*
 !artifacts/alice_full/neighbors.json
 !artifacts/alice_full/loss_curve.png
 !artifacts/alice_full/embeddings_pca.png
+
+assets/
