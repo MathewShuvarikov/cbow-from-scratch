@@ -31,24 +31,31 @@ For vocabulary size $V$, embedding dimension $d$, and context of $C$ words, the 
 The forward pass is
 
 $$
-\mathbf{h}=\mathbf{x}W_{\mathrm{in}},\qquad
-\mathbf{z}=\mathbf{h}W_{\mathrm{out}},\qquad
-\hat{\mathbf{y}}=\operatorname{softmax}(\mathbf{z}).
+\begin{aligned}
+\mathbf{h} &= \mathbf{x}W_{\mathrm{in}},\\
+\mathbf{z} &= \mathbf{h}W_{\mathrm{out}},\\
+\hat{\mathbf{y}} &= \mathrm{softmax}(\mathbf{z}).
+\end{aligned}
 $$
 
-For target-word index $t$, the loss is $L=-\log \hat y_t$. In code, it is evaluated **directly from the logits** using the stable log-sum-exp form:
+For target-word index $t$, the loss is $L=-\log \hat{y}_t$. In code, it is evaluated **directly from the logits** using the numerically stable log-sum-exp formulation:
 
 $$
-L=-z_t+m+\log\sum_{j=1}^{V}\exp(z_j-m),\qquad m=\max_j z_j.
+L=-z_t+m+\log\sum_{j=1}^{V}\exp(z_j-m),
+\qquad m=\max_j z_j.
 $$
 
 The backward pass uses the analytical derivatives
 
 $$
 \begin{aligned}
-\frac{\partial L}{\partial \mathbf{z}} &= \hat{\mathbf{y}}-\mathbf{y},\\
-\frac{\partial L}{\partial W_{\mathrm{out}}} &= \mathbf{h}^{\mathsf T}(\hat{\mathbf{y}}-\mathbf{y}),\\
-\frac{\partial L}{\partial W_{\mathrm{in}}} &= \mathbf{x}^{\mathsf T}\bigl((\hat{\mathbf{y}}-\mathbf{y})W_{\mathrm{out}}^{\mathsf T}\bigr).
+\frac{\partial L}{\partial \mathbf{z}}
+&= \hat{\mathbf{y}}-\mathbf{y},\\
+\frac{\partial L}{\partial W_{\mathrm{out}}}
+&= \mathbf{h}^{\mathsf T}(\hat{\mathbf{y}}-\mathbf{y}),\\
+\frac{\partial L}{\partial W_{\mathrm{in}}}
+&= \mathbf{x}^{\mathsf T}
+\bigl((\hat{\mathbf{y}}-\mathbf{y})W_{\mathrm{out}}^{\mathsf T}\bigr).
 \end{aligned}
 $$
 
