@@ -139,7 +139,7 @@ metadata = {
     "shuffle": args.shuffle,
     "max_tokens": args.max_tokens,
     "empirical_loss_bound": float(theoretical_loss_bound(training_pairs)),
-    "initialization_seed": 42
+    "initialization_seed": args.seed
 }
 
 (OUT / "metadata.json").write_text(

@@ -14,6 +14,12 @@ from cbow.metrics import theoretical_loss_bound
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "artifacts" / "tiny_demo"
+OUT.mkdir(parents=True, exist_ok=True)
+
 text = "The cat sits on the mat"
 
 embedding_dim = 3
@@ -54,7 +60,11 @@ plt.title("CBOW Training Loss")
 plt.xlabel('Epoch')
 plt.ylabel('Cross-Entropy')
 plt.legend()
-plt.savefig("assets/loss_plot.png", dpi=150, bbox_inches="tight")
+plt.savefig(
+    OUT / "loss_plot.png",
+    dpi=150,
+    bbox_inches="tight",
+)
 
 print('-'*100)
 inverse_vocab = {value: key for key, value in vocab.items()}
@@ -69,7 +79,7 @@ for context, target_id in training_pairs:
     print(np.argmax(probs[0]))
     print(f'Max probability word - {np.max(probs[0])}- "{inverse_vocab[np.argmax(probs[0])]}"')
     print('-'*100)
-    loss.append(cross_entropy_from_logits(probs, target_id))
+    loss.append(cross_entropy_from_logits(logits, target_id))
 
 print(f'Eval Cross-Entropy: {np.mean(loss):.3f}')
 
